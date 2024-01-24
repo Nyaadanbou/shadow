@@ -104,20 +104,14 @@ final class Reflection {
     }
 
     public static void ensureAccessible(AccessibleObject accessibleObject) {
-        if (!accessibleObject.isAccessible()) {
-            accessibleObject.setAccessible(true);
+        if (!accessibleObject.trySetAccessible()) {
+            throw new RuntimeException("Unable to make " + accessibleObject + " accessible");
         }
     }
 
     public static void ensureModifiable(Field field) {
-        if (Modifier.isFinal(field.getModifiers())) {
-            try {
-                Field modifierField = Field.class.getDeclaredField("modifiers");
-                modifierField.setAccessible(true);
-                modifierField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-            } catch (IllegalAccessException | NoSuchFieldException e) {
-                throw new RuntimeException(e);
-            }
+        if (Modifier.isFinal(field.getModifiers()) && Modifier.isStatic(field.getModifiers())) {
+            throw new RuntimeException("Unable to make static final " + field + " modifiable");
         }
     }
 
