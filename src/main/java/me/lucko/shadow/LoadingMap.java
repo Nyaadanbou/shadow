@@ -67,10 +67,11 @@ class LoadingMap<K, V> implements Map<K, V> {
         return this.map.containsValue(value);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public V get(final Object key) {
         final V value = this.map.get(key);
-        if(value != null) {
+        if (value != null) {
             return value;
         }
         return this.map.computeIfAbsent((K) key, this.function);

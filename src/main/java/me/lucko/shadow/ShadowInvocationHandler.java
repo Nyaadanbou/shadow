@@ -87,10 +87,9 @@ final class ShadowInvocationHandler implements InvocationHandler {
             if (otherObject == this) {
                 return true;
             }
-            if (!(otherObject instanceof Shadow)) {
+            if (!(otherObject instanceof final Shadow other)) {
                 return false;
             }
-            Shadow other = (Shadow) otherObject;
             return this.shadow.getShadowClass().equals(other.getShadowClass()) && Objects.equals(this.handle, other.getShadowTarget());
         }
         if (OBJECT_HASHCODE_METHOD.equals(shadowMethod)) {

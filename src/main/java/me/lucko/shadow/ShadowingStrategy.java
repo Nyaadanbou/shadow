@@ -138,7 +138,7 @@ public @interface ShadowingStrategy {
             return unwrapped;
         }
 
-        default @NonNull Class<?>[] unwrapAll(@NonNull Class<?>[] wrapped, @NonNull ShadowFactory shadowFactory) throws Exception {
+        default @NonNull Class<?>[] unwrapAll(@NonNull Class<?>[] wrapped, @NonNull ShadowFactory shadowFactory) {
             Class<?>[] unwrapped = new Class[wrapped.length];
             for (int i = 0; i < wrapped.length; i++) {
                 unwrapped[i] = unwrap(wrapped[i], shadowFactory);
@@ -197,8 +197,7 @@ public @interface ShadowingStrategy {
                 return null;
             }
 
-            if (wrapped instanceof Shadow) {
-                Shadow shadow = (Shadow) wrapped;
+            if (wrapped instanceof final Shadow shadow) {
                 return shadow.getShadowTarget();
             }
 
@@ -252,7 +251,7 @@ public @interface ShadowingStrategy {
         }
 
         @Override
-        public @Nullable Object unwrap(@Nullable Object wrapped, @NonNull Class<?> expectedType, @NonNull ShadowFactory shadowFactory) throws Exception {
+        public @Nullable Object unwrap(@Nullable Object wrapped, @NonNull Class<?> expectedType, @NonNull ShadowFactory shadowFactory) {
             if (wrapped == null) {
                 return null;
             }

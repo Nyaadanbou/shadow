@@ -92,7 +92,7 @@ final class BeanUtils {
             bestMatch = getMatchingMethod(clazz.getSuperclass(), methodName, parameterTypes);
         }
 
-        if (bestMatch == null && clazz.getInterfaces() != null) {
+        if (bestMatch == null) {
             Class<?>[] interfaces = clazz.getInterfaces();
             for (Class<?> i : interfaces) {
                 bestMatch = getMatchingMethod(i, methodName, parameterTypes);
