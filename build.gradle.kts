@@ -1,4 +1,5 @@
 plugins {
+    kotlin("jvm") version "1.9.22"
     `java-library`
     `maven-publish`
 }
@@ -8,8 +9,24 @@ version = "1.4"
 
 java {
     withSourcesJar()
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+kotlin {
+    jvmToolchain(17)
+
+    sourceSets {
+        val main by getting {
+            dependencies {
+                compileOnly(kotlin("stdlib"))
+                compileOnly("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
+            }
+        }
+
+        val test by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
     }
 }
 
