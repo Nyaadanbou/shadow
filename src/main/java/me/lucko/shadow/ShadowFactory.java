@@ -62,8 +62,8 @@ public class ShadowFactory {
      * Creates a shadow for the given object.
      *
      * @param shadowClass the class of the shadow definition
-     * @param handle the handle object
-     * @param <T> the shadow type
+     * @param handle      the handle object
+     * @param <T>         the shadow type
      * @return the shadow instance
      */
     public final <T extends Shadow> @NonNull T shadow(@NonNull Class<T> shadowClass, @NonNull Object handle) {
@@ -87,7 +87,7 @@ public class ShadowFactory {
      * Creates a static shadow for the given class.
      *
      * @param shadowClass the class of the shadow definition
-     * @param <T> the shadow type
+     * @param <T>         the shadow type
      * @return the shadow instance
      */
     public final <T extends Shadow> @NonNull T staticShadow(@NonNull Class<T> shadowClass) {
@@ -105,8 +105,8 @@ public class ShadowFactory {
      * target.
      *
      * @param shadowClass the class of the shadow definition
-     * @param args the arguments to pass to the constructor
-     * @param <T> the shadow type
+     * @param args        the arguments to pass to the constructor
+     * @param <T>         the shadow type
      * @return the shadow instance
      */
     public final <T extends Shadow> @NonNull T constructShadow(@NonNull Class<T> shadowClass, @NonNull Object... args) {
@@ -118,9 +118,9 @@ public class ShadowFactory {
      * target.
      *
      * @param shadowClass the class of the shadow definition
-     * @param unwrapper the unwrapper to use
-     * @param args the arguments to pass to the constructor
-     * @param <T> the shadow type
+     * @param unwrapper   the unwrapper to use
+     * @param args        the arguments to pass to the constructor
+     * @param <T>         the shadow type
      * @return the shadow instance
      */
     public final <T extends Shadow> @NonNull T constructShadow(@NonNull Class<T> shadowClass, ShadowingStrategy.@NonNull Unwrapper unwrapper, @NonNull Object... args) {
@@ -176,7 +176,13 @@ public class ShadowFactory {
         return this.targetLookup;
     }
 
-    @NonNull Class<?> getTargetClass(@NonNull Class<?> shadowClass) {
+    /**
+     * Gets the target class of specified shadow class.
+     *
+     * @param shadowClass the shadow class from which we get the target class
+     * @return the target class
+     */
+    public @NonNull Class<?> getTargetClass(@NonNull Class<?> shadowClass) {
         final ShadowDefinition definition = this.shadows.getIfPresent(shadowClass);
         return definition == null ? shadowClass : definition.getTargetClass();
     }
