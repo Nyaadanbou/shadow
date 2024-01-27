@@ -42,7 +42,7 @@ import java.lang.reflect.Array;
 public @interface ShadowingStrategy {
 
     /**
-     *  Gets the {@link Wrapper} function.
+     * Gets the {@link Wrapper} function.
      *
      * <p>An instance of the function is retrieved/constructed on demand by the implementation in
      * the following order.</p>
@@ -63,7 +63,7 @@ public @interface ShadowingStrategy {
     @NonNull Class<? extends Wrapper> wrapper() default Wrapper.class;
 
     /**
-     *  Gets the {@link Unwrapper} function.
+     * Gets the {@link Unwrapper} function.
      *
      * <p>An instance of the function is retrieved/constructed on demand by the implementation in
      * the following order.</p>
@@ -91,8 +91,8 @@ public @interface ShadowingStrategy {
         /**
          * Wraps the given {@code object} to a shadow.
          *
-         * @param unwrapped the object being returned (not a shadow)
-         * @param expectedType the expected type of the object (possibly a shadow)
+         * @param unwrapped     the object being returned (not a shadow)
+         * @param expectedType  the expected type of the object (possibly a shadow)
          * @param shadowFactory the shadow factory
          * @return the wrapped value
          * @throws Exception anything
@@ -107,8 +107,8 @@ public @interface ShadowingStrategy {
         /**
          * Unwraps the given {@code object} to a non-shadow object.
          *
-         * @param wrapped the object (possibly a shadow)
-         * @param expectedType the expected type of the object
+         * @param wrapped       the object (possibly a shadow)
+         * @param expectedType  the expected type of the object
          * @param shadowFactory the shadow factory
          * @return the unwrapped value
          * @throws Exception anything
@@ -118,9 +118,9 @@ public @interface ShadowingStrategy {
         @NonNull Class<?> unwrap(Class<?> wrappedClass, @NonNull ShadowFactory shadowFactory);
 
         /**
-         * Unwraps all of the given {@code object}s to non-shadow objects.
+         * Unwraps all the given {@code object}s to non-shadow objects.
          *
-         * @param wrapped the wrapped objects
+         * @param wrapped       the wrapped objects
          * @param expectedTypes the expected types of the objects
          * @param shadowFactory the shadow factory
          * @return the unwrapped values
