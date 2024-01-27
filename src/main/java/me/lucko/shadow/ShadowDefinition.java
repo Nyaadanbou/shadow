@@ -113,7 +113,6 @@ final class ShadowDefinition {
         }
 
         Reflection.ensureAccessible(field);
-        Reflection.ensureModifiable(field);
 
         try {
             return new TargetField(field);

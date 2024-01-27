@@ -109,12 +109,6 @@ final class Reflection {
         }
     }
 
-    public static void ensureModifiable(Field field) {
-        if (Modifier.isFinal(field.getModifiers()) && Modifier.isStatic(field.getModifiers())) {
-            throw new RuntimeException("Unable to make static final " + field + " modifiable");
-        }
-    }
-
     public static Field findField(Class<?> searchClass, String fieldName) {
         Field field = null;
         do {
