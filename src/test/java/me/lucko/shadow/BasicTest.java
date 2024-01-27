@@ -45,6 +45,8 @@ public class BasicTest {
         assertEquals("bar", data.theString);
         shadow.incrementTheInteger();
         assertEquals(6, shadow.getTheInteger());
+        assertEquals(1, shadow.getOne());
+        assertEquals(2, shadow.getTwo());
     }
 
     @Test
@@ -54,7 +56,7 @@ public class BasicTest {
 
         Object target = shadow.getShadowTarget();
         assertNotNull(target);
-        assertTrue(target instanceof DataClass);
+        assertInstanceOf(DataClass.class, target);
 
         DataClass casted = (DataClass) target;
         assertTrue(casted.theBoolean);
@@ -94,8 +96,17 @@ public class BasicTest {
         assertEquals(DataClass.class, shadow.getShadowTarget().getClass());
     }
 
+    @Test
+    public void testTransitiveShadow() {
+        DataClass data = new DataClass("foo", 5, false);
+        DataClassShadow shadow = ShadowFactory.global().shadow(DataClassShadow.class, data);
+
+        assertEquals(-1, shadow.getTheHiddenClass().getTheInteger());
+        assertSame(data, shadow.getTheSelf());
+    }
+
     @ClassTarget(DataClass.class)
-    private interface DataClassShadow extends Shadow {
+    private interface DataClassShadow extends Shadow, InterfaceA, InterfaceB {
         @Field
         String getTheString();
 
@@ -110,22 +121,63 @@ public class BasicTest {
         void setTheString(String value);
 
         void incrementTheInteger();
+
+        @Field
+        @Target("transitiveClass")
+        HiddenClassShadow getTheHiddenClass();
+
+        @Target("getSelf")
+        DataClass getTheSelf();
     }
 
-    private static final class DataClass {
+    @ClassTarget(TransitiveClass.class)
+    private interface HiddenClassShadow extends Shadow {
+        @Field
+        @Target("j")
+        int getTheInteger();
+    }
+
+    private static final class DataClass extends AbstractClassA implements InterfaceA {
         private final String theString;
         private int i;
         private final boolean theBoolean;
+        final TransitiveClass transitiveClass;
 
         private DataClass(String theString, int theInteger, boolean theBoolean) {
             this.theString = theString;
             this.i = theInteger;
             this.theBoolean = theBoolean;
+            this.transitiveClass = new TransitiveClass(-1);
         }
 
         private void incrementTheInteger() {
             this.i++;
         }
+
+        private AbstractClassA getSelf() {
+            return this;
+        }
+    }
+
+    private interface InterfaceA {
+        default int getOne() {
+            return 1;
+        }
+    }
+
+    private interface InterfaceB {
+        int getTwo();
+    }
+
+    private static abstract class AbstractClassA implements InterfaceB {
+        public int getTwo() {
+            return 2;
+        }
+    }
+
+    private static class TransitiveClass {
+        final int j;
+        private TransitiveClass(int j) {this.j = j;}
     }
 
 }
