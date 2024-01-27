@@ -100,7 +100,7 @@ public class GenericTest {
                 return unwrappedMap;
             }
             @Override public @NonNull Class<?> unwrap(final Class<?> wrappedClass, @NonNull final ShadowFactory shadowFactory) {
-                return shadowFactory.getTargetClass(wrappedClass);
+                return shadowFactory.targetClass(wrappedClass);
             }
         }
     }

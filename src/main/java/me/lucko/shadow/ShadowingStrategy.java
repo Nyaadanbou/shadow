@@ -206,7 +206,7 @@ public @interface ShadowingStrategy {
 
         @Override
         public @NonNull Class<?> unwrap(Class<?> wrappedClass, @NonNull ShadowFactory shadowFactory) {
-            return shadowFactory.getTargetClass(wrappedClass);
+            return shadowFactory.targetClass(wrappedClass);
         }
     }
 
@@ -289,7 +289,7 @@ public @interface ShadowingStrategy {
                 throw new RuntimeException("Object to be unwrapped is not an array: " + wrappedClass);
             }
 
-            final Class<?> unwrappedComponentType = shadowFactory.getTargetClass(wrappedClass.getComponentType());
+            final Class<?> unwrappedComponentType = shadowFactory.targetClass(wrappedClass.getComponentType());
             return Array.newInstance(unwrappedComponentType, 0).getClass();
         }
     }

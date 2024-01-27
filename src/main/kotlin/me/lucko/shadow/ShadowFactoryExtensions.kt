@@ -18,6 +18,6 @@ inline fun <reified T : Shadow> ShadowFactory.constructShadow(unwrapper: Unwrapp
     return constructShadow(T::class.java, unwrapper, args)
 }
 
-inline fun <reified T> ShadowFactory.getTargetClass(): Class<*> {
-    return getTargetClass(T::class.java)
+inline fun <reified T> ShadowFactory.targetClass(): Class<*> {
+    return targetClass(T::class.java)
 }

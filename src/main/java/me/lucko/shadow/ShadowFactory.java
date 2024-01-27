@@ -182,7 +182,7 @@ public class ShadowFactory {
      * @param shadowClass the shadow class from which we get the target class
      * @return the target class
      */
-    public @NonNull Class<?> getTargetClass(@NonNull Class<?> shadowClass) {
+    public @NonNull Class<?> targetClass(@NonNull Class<?> shadowClass) {
         final ShadowDefinition definition = this.shadows.getIfPresent(shadowClass);
         return definition == null ? shadowClass : definition.getTargetClass();
     }
