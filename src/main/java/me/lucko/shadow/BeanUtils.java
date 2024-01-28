@@ -49,12 +49,14 @@ final class BeanUtils {
      * @param parameterTypes find method with compatible parameters
      * @return The accessible method
      */
-    public static Method getMatchingMethod(final Class<?> clazz, final String methodName, final Class<?>[] parameterTypes) {
+    public static Method getMatchingMethod(final Class<?> clazz, final String methodName, final Class<?>[] parameterTypes, final Class<?> returnType) {
         // try exact match
         try {
             Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
-            Reflection.ensureAccessible(method);
-            return method;
+            if (isReturnTypeCompatible(method, returnType)) {
+                Reflection.ensureAccessible(method);
+                return method;
+            }
         } catch (NoSuchMethodException e) {
             // ignore
         }
@@ -65,7 +67,7 @@ final class BeanUtils {
 
         search:
         for (final Method method : clazz.getDeclaredMethods()) {
-            if (!method.getName().equals(methodName)) {
+            if (!method.getName().equals(methodName) || !isReturnTypeCompatible(method, returnType)) {
                 continue;
             }
 
@@ -88,21 +90,29 @@ final class BeanUtils {
             }
         }
 
-        if (bestMatch == null && clazz.getSuperclass() != null) {
-            bestMatch = getMatchingMethod(clazz.getSuperclass(), methodName, parameterTypes);
-        }
-
         if (bestMatch == null) {
-            Class<?>[] interfaces = clazz.getInterfaces();
-            for (Class<?> i : interfaces) {
-                bestMatch = getMatchingMethod(i, methodName, parameterTypes);
-                if (bestMatch != null) {
-                    break;
+            // Recursively search in superclass
+            Class<?> superClass = clazz.getSuperclass();
+            if (superClass != null) {
+                bestMatch = getMatchingMethod(superClass, methodName, parameterTypes, returnType);
+            }
+
+            // If still not found, search in interfaces
+            if (bestMatch == null) {
+                for (Class<?> interfaceClass : clazz.getInterfaces()) {
+                    bestMatch = getMatchingMethod(interfaceClass, methodName, parameterTypes, returnType);
+                    if (bestMatch != null) {
+                        break;
+                    }
                 }
             }
         }
 
         return bestMatch;
+    }
+
+    private static boolean isReturnTypeCompatible(Method method, Class<?> returnType) {
+        return returnType == null || method.getReturnType().isAssignableFrom(returnType);
     }
 
     public static Constructor<?> getMatchingConstructor(final Class<?> clazz, final Class<?>[] parameterTypes) {

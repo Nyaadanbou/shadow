@@ -139,10 +139,11 @@ final class ShadowInvocationHandler implements InvocationHandler {
             // assume method target
             Unwrapper unwrapper = getUnwrapper(shadowMethod);
             Class<?>[] unwrappedParameterTypes = unwrapper.unwrapAll(shadowMethod.getParameterTypes(), this.shadowFactory);
+            Class<?> unwrappedReturnType = unwrapper.unwrap(shadowMethod.getReturnType(), this.shadowFactory);
             Object[] unwrappedArguments = unwrapper.unwrapAll(args, unwrappedParameterTypes, this.shadowFactory);
             Class<?>[] unwrappedArgumentTypes = getArgumentTypes(unwrappedArguments, unwrappedParameterTypes);
 
-            ShadowDefinition.TargetMethod targetMethod = this.shadow.findTargetMethod(shadowMethod, unwrappedArgumentTypes);
+            ShadowDefinition.TargetMethod targetMethod = this.shadow.findTargetMethod(shadowMethod, unwrappedArgumentTypes, unwrappedReturnType);
             returnValue = bindWithHandle(targetMethod.handle(), shadowMethod).invokeWithArguments(unwrappedArguments);
         }
 

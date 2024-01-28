@@ -154,7 +154,7 @@ public class BasicTest {
             this.i++;
         }
 
-        private AbstractClassA getSelf() {
+        private InterfaceA getSelf() {
             return this;
         }
     }

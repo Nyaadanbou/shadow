@@ -62,8 +62,8 @@ final class ShadowDefinition {
         return this.targetClass;
     }
 
-    public @NonNull TargetMethod findTargetMethod(@NonNull Method shadowMethod, @NonNull Class<?>[] argumentTypes) {
-        return this.methods.get(new MethodInfo(shadowMethod, argumentTypes, shadowMethod.isAnnotationPresent(Static.class)));
+    public @NonNull TargetMethod findTargetMethod(@NonNull Method shadowMethod, @NonNull Class<?>[] argumentTypes, @NonNull Class<?> returnType) {
+        return this.methods.get(new MethodInfo(shadowMethod, argumentTypes, returnType, shadowMethod.isAnnotationPresent(Static.class)));
     }
 
     public @NonNull TargetField findTargetField(@NonNull Method shadowMethod) {
@@ -77,7 +77,7 @@ final class ShadowDefinition {
     private @NonNull TargetMethod loadTargetMethod(@NonNull MethodInfo methodInfo) {
         Method shadowMethod = methodInfo.shadowMethod;
         String methodName = this.shadowFactory.getTargetLookup().lookupMethod(shadowMethod, this.shadowClass, this.targetClass).orElseGet(shadowMethod::getName);
-        Method method = BeanUtils.getMatchingMethod(this.targetClass, methodName, methodInfo.argumentTypes);
+        Method method = BeanUtils.getMatchingMethod(this.targetClass, methodName, methodInfo.argumentTypes, methodInfo.returnType);
         if (method == null) {
             throw new RuntimeException(new NoSuchMethodException(this.targetClass.getName() + "." + methodName));
         }
@@ -139,11 +139,13 @@ final class ShadowDefinition {
     private static final class MethodInfo {
         private final Method shadowMethod;
         private final Class<?>[] argumentTypes;
+        private final Class<?> returnType;
         private final boolean isStatic;
 
-        MethodInfo(Method shadowMethod, Class<?>[] argumentTypes, boolean isStatic) {
+        MethodInfo(Method shadowMethod, Class<?>[] argumentTypes, Class<?> returnType, boolean isStatic) {
             this.shadowMethod = shadowMethod;
             this.argumentTypes = argumentTypes;
+            this.returnType = returnType;
             this.isStatic = isStatic;
         }
 

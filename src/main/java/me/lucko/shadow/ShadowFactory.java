@@ -182,7 +182,12 @@ public class ShadowFactory {
      * @param shadowClass the shadow class from which we get the target class
      * @return the target class
      */
+    @SuppressWarnings("unchecked")
     public @NonNull Class<?> targetClass(@NonNull Class<?> shadowClass) {
+        if (Shadow.class.isAssignableFrom(shadowClass)) {
+            ShadowDefinition definition = this.shadows.computeIfAbsent((Class<? extends Shadow>) shadowClass, this::initShadow);
+            return definition.getTargetClass();
+        }
         final ShadowDefinition definition = this.shadows.getIfPresent(shadowClass);
         return definition == null ? shadowClass : definition.getTargetClass();
     }
