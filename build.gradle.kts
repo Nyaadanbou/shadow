@@ -50,16 +50,9 @@ dependencies {
     testImplementation("org.checkerframework", "checker-qual", "3.42.0")
 }
 
-val userHome: String = when {
-    System.getProperty("os.name").startsWith("Windows", ignoreCase = true) -> System.getenv("USERPROFILE")
-    else -> System.getenv("HOME")
-}
-
 publishing {
     repositories {
-        maven {
-            url = uri("$userHome/MewcraftRepository")
-        }
+        maven(uri("${System.getProperty("user.home")}/MewcraftRepository"))
     }
     publications {
         create<MavenPublication>("maven") {
