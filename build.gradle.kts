@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "2.0.20"
     `java-library`
     `maven-publish`
 }
@@ -18,7 +18,6 @@ kotlin {
         val main by getting {
             dependencies {
                 compileOnly(kotlin("stdlib"))
-                compileOnly("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
             }
         }
 
