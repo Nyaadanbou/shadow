@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class StaticTest {
 
     @Test
-    public void testStatic() {
+    public void testStatic1() {
         TestClassShadow shadow = ShadowFactory.global().shadow(TestClassShadow.class, new TestClass("foo"));
         TestClassShadow staticShadow = ShadowFactory.global().staticShadow(TestClassShadow.class);
 
@@ -40,6 +40,20 @@ public class StaticTest {
         staticShadow.isString("bar");
 
         assertThrows(IllegalStateException.class, staticShadow::getString, "Cannot call non-static method from a static shadow instance.");
+    }
+
+    @Test
+    public void testStatic2() {
+        TestClassShadow staticShadow = ShadowFactory.global().staticShadow(TestClassShadow.class);
+        assertDoesNotThrow(staticShadow::getRandomInt, "No exception should be thrown if we read value from a private-static-final field.");
+        assertEquals(1, staticShadow.getRandomInt());
+    }
+
+    @Test
+    public void testStatic3() {
+        TestClassShadow staticShadow = ShadowFactory.global().staticShadow(TestClassShadow.class);
+        assertThrows(UnsupportedOperationException.class, () -> staticShadow.setRandomInt(2), "An exception should be throw if we modify value for a private-static-final field.");
+        assertEquals(1, staticShadow.getRandomInt());
     }
 
     @Test
@@ -52,6 +66,17 @@ public class StaticTest {
     private interface TestClassShadow extends Shadow {
         @Field
         String getString();
+
+        @Field
+        @Static
+        @Target("RANDOM_INT")
+        Integer getRandomInt();
+
+        // Shadow at static & final fields is prohibited!
+        @Field
+        @Static
+        @Target("RANDOM_INT")
+        void setRandomInt(int i);
 
         @Static
         boolean isString(Object o);
@@ -67,6 +92,8 @@ public class StaticTest {
         private TestClass(String string) {
             this.string = string;
         }
+
+        private static final Integer RANDOM_INT = 1;
 
         public static boolean isString(Object obj) {
             return obj instanceof String;

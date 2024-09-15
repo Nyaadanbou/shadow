@@ -26,9 +26,12 @@
 package me.lucko.shadow;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -210,38 +213,66 @@ final class ShadowDefinition {
         }
     }
 
+    /**
+     * Represents a target field.
+     *
+     * <h3>Implementation Notes</h3>
+     * <p>
+     * The {@link #field} is assumed to be accessible, i.e.,
+     * {@link AccessibleObject#canAccess(Object)} returns true.
+     * <p>
+     * For <em>reads</em>, the {@link #varHandle} can (and should) be used for ANY kind
+     * of fields, regardless of whether they are public or private, static or non-static,
+     * final or non-final.
+     * <p>
+     * For <em>writes</em>, it becomes a bit of tricky. The {@link #varHandle} can only be
+     * used for non-final fields (because it respects the final modifier). For that reason,
+     * the {@link #setterHandle} should be used for fields with {@code final} modifier.
+     * <p>
+     * It should be noted that the writes to {@code static} and {@code final} fields
+     * are specifically prohibited due to it being extremely unsafe and unstable. See
+     * <a href="https://stackoverflow.com/a/3301720/10275532">this post</a> for details.
+     */
     static final class TargetField {
         private final @NonNull Field field;
-        private final @NonNull MethodHandle getter;
-        private final @NonNull MethodHandle setter;
+        private final @NonNull VarHandle varHandle;
+        private final @Nullable MethodHandle setterHandle;
 
         TargetField(@NonNull Field field) throws IllegalAccessException {
             this.field = field;
+
             MethodHandles.Lookup lookup = PrivateMethodHandles.forClass(field.getDeclaringClass());
-            this.getter = lookup.unreflectGetter(field);
-            this.setter = lookup.unreflectSetter(field);
+            this.varHandle = lookup.unreflectVarHandle(field);
+
+            if (Modifier.isStatic(field.getModifiers()) && Modifier.isFinal(field.getModifiers())) {
+                // We can't reflectively set static & final fields in a safe manner,
+                // so the setter handle will just be null for static & final fields.
+                this.setterHandle = null;
+            } else {
+                this.setterHandle = lookup.unreflectSetter(field);
+            }
         }
 
         public @NonNull Field underlyingField() {
             return this.field;
         }
 
-        public @NonNull MethodHandle getterHandle() {
-            return this.getter;
+        public @NonNull VarHandle varHandle() {
+            return this.varHandle;
         }
 
-        public @NonNull MethodHandle setterHandle() {
-            return this.setter;
+        public @Nullable MethodHandle setterHandle() {
+            return this.setterHandle;
         }
     }
 
     static final class TargetMethod {
         private final @NonNull Method method;
-        private final @NonNull MethodHandle handle;
+        private final @NonNull MethodHandle methodHandle;
 
         TargetMethod(@NonNull Method method) throws IllegalAccessException {
             this.method = method;
-            this.handle = PrivateMethodHandles.forClass(method.getDeclaringClass()).unreflect(method);
+            this.methodHandle = PrivateMethodHandles.forClass(method.getDeclaringClass()).unreflect(method);
         }
 
         public @NonNull Method underlyingMethod() {
@@ -249,8 +280,7 @@ final class ShadowDefinition {
         }
 
         public @NonNull MethodHandle handle() {
-            return this.handle;
+            return this.methodHandle;
         }
-
     }
 }

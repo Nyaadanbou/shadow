@@ -27,7 +27,6 @@ package me.lucko.shadow;
 
 import me.lucko.shadow.ShadowingStrategy.Unwrapper;
 import me.lucko.shadow.ShadowingStrategy.Wrapper;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -35,7 +34,10 @@ import java.lang.invoke.MethodHandle;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Invocation handler for {@link Shadow}s.
@@ -46,6 +48,7 @@ final class ShadowInvocationHandler implements InvocationHandler {
     private static final Method OBJECT_TOSTRING_METHOD;
     private static final Method OBJECT_EQUALS_METHOD;
     private static final Method OBJECT_HASHCODE_METHOD;
+
     static {
         try {
             GET_SHADOW_TARGET_METHOD = Shadow.class.getMethod("getShadowTarget");
@@ -116,15 +119,13 @@ final class ShadowInvocationHandler implements InvocationHandler {
 
             if (args.length == 0) {
                 // getter
-                returnValue = bindWithHandle(targetField.getterHandle(), shadowMethod).invoke();
-
+                returnValue = getFieldValue(targetField, shadowMethod);
             } else if (args.length == 1) {
                 // setter
-                MethodHandle setter = bindWithHandle(targetField.setterHandle(), shadowMethod);
                 Unwrapper unwrapper = getUnwrapper(shadowMethod);
                 Class<?> unwrappedType = unwrapper.unwrap(shadowMethod.getParameterTypes()[0], this.shadowFactory);
                 Object value = unwrapper.unwrap(args[0], unwrappedType, this.shadowFactory);
-                setter.invokeWithArguments(value);
+                setFieldValue(targetField, shadowMethod, value);
 
                 if (shadowMethod.getReturnType() == void.class) {
                     returnValue = null;
@@ -186,7 +187,42 @@ final class ShadowInvocationHandler implements InvocationHandler {
         return unwrapper;
     }
 
-    private @NonNull MethodHandle bindWithHandle(MethodHandle methodHandle, @NonNull AnnotatedElement annotatedElement) {
+    private @Nullable Object getFieldValue(ShadowDefinition.@NonNull TargetField targetField, @NonNull AnnotatedElement annotatedElement) {
+        if (annotatedElement.isAnnotationPresent(Static.class)) {
+            return targetField.varHandle().get();
+        } else {
+            if (this.handle == null) {
+                throw new IllegalStateException("Cannot call non-static method from a static shadow instance.");
+            }
+            return targetField.varHandle().get(this.handle);
+        }
+    }
+
+    private void setFieldValue(ShadowDefinition.@NonNull TargetField targetField, @NonNull AnnotatedElement annotatedElement, @Nullable Object value) throws Throwable {
+        if (annotatedElement.isAnnotationPresent(Static.class)) {
+            if (Modifier.isFinal(targetField.underlyingField().getModifiers())) {
+                throw new UnsupportedOperationException("Cannot set value for a static-final field.");
+            }
+
+            targetField.varHandle().set(value);
+        } else {
+            if (this.handle == null) {
+                throw new IllegalStateException("Cannot call non-static method from a static shadow instance.");
+            }
+
+            if (!Modifier.isFinal(targetField.underlyingField().getModifiers())) {
+                // Use VarHandle for better performance
+                targetField.varHandle().set(this.handle, value);
+                return;
+            }
+
+            // VarHandle cannot set final fields, so we use MethodHandle instead
+            MethodHandle methodHandle = requireNonNull(targetField.setterHandle());
+            bindWithHandle(methodHandle, annotatedElement).invoke(value);
+        }
+    }
+
+    private @NonNull MethodHandle bindWithHandle(@NonNull MethodHandle methodHandle, @NonNull AnnotatedElement annotatedElement) {
         if (annotatedElement.isAnnotationPresent(Static.class)) {
             return methodHandle;
         } else {
